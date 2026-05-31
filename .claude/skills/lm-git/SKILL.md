@@ -37,6 +37,25 @@ D2 — DESCRIPTION (Behavior & Git Standards)
   test(auth): add unit tests for PIN authentication flow
   ```
   Valid types: feat, fix, chore, docs, refactor, test, build, ci, perf.
+
+- CO-AUTHORSHIP — every commit body MUST include the following trailers after a blank line:
+  ```
+  Co-authored-by: Iader E. Garcia G. <iadergg@gmail.com>
+  Co-authored-by: Claude Code <noreply@anthropic.com>
+  ```
+  Full commit example:
+  ```
+  feat(auth): implement 4-digit PIN login endpoint
+
+  - Validates PIN format via Pydantic field_validator
+  - Returns 401 on invalid credentials via HTTPException
+
+  Co-authored-by: Iader E. Garcia G. <iadergg@gmail.com>
+  Co-authored-by: Claude Code <noreply@anthropic.com>
+  ```
+  For single-line chore/docs/style commits where a body is not otherwise needed,
+  still append the trailers after a blank line.
+
 - PR CREATION:
   ```bash
   git push -u origin feat/us-XX-description
@@ -51,7 +70,8 @@ D2 — DESCRIPTION (Behavior & Git Standards)
   ## Test Plan
   - [ ] All pytest tests pass
 
-  🤖 Co-authored with Claude Code
+  ---
+  🤖 Co-authored by **Iader E. Garcia G.** & **Claude Code** · [claude.ai/claude-code](https://claude.ai/claude-code)
   EOF
   )"
   ```
