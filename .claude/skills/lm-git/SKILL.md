@@ -23,6 +23,13 @@ D1 — DELEGATION (Scope & Security Boundaries)
 ================================================================================
 D2 — DESCRIPTION (Behavior & Git Standards)
 ================================================================================
+- HOOK SETUP — after a fresh clone, run once to wire up the shared hooks:
+  ```bash
+  pre-commit install --hook-type pre-commit --hook-type commit-msg
+  ```
+  This installs `.pre-commit-config.yaml` into `.git/hooks/` for the local machine.
+  If hooks are not installed yet, remind the user before the first commit.
+
 - BRANCH NAMING — lowercase, hyphenated, by task type:
   ```
   feat/us-10-upload-audio
@@ -90,6 +97,7 @@ D3 — DISCERNMENT (Critical Self-Evaluation)
 ================================================================================
 - TASK-SCOPED STAGING (CRITICAL): Before running `git add`, read `implementation_plan.md` and extract the exact list of files under "Files to Create / Modify". Stage ONLY those files — nothing else. Never use `git add .`, `git add -A`, or path wildcards that could capture files outside the task scope. If you find untracked or modified files that are not in the plan, leave them unstaged and report them to the user.
 - INTEGRITY CHECK: Before committing, run `python -m pytest tests/ -v` and confirm green (skip for chore/config/docs tasks that touch no Python code). Before opening a PR, confirm all tests pass.
+- HOOK FAILURES: If a pre-commit or commit-msg hook rejects a commit, STOP. Report the exact error to the user and fix the root cause. NEVER use `--no-verify` or `--no-gpg-sign` to bypass hooks — doing so defeats the purpose of the shared quality gate.
 - DIFF ANALYSIS: Inspect `git diff --cached` after staging to verify only task-related files are included. If anything unexpected appears, unstage it with `git restore --staged <file>` and report to the user before proceeding.
 - CONFLICTS: If a merge conflict arises, STOP. Report the conflicting files and the branches involved. Do not force-push or guess the developer's intent.
 

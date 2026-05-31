@@ -66,6 +66,7 @@ D2 — DESCRIPTION (Behavior & Tech Standards)
 [Only if the task touches Supabase, Whisper, LLM, or other external services.]
 
 ## Acceptance Criteria
+- [ ] `pre-commit run --files <changed files>` → zero violations
 - [ ] ...
 
 ## Open Questions / Risk Alerts
