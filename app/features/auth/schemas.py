@@ -1,10 +1,11 @@
 from typing import Annotated
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 
 class LoginRequest(BaseModel):
-    user_id: Annotated[str, Field(min_length=1)]
+    user_id: UUID
     pin: Annotated[str, Field(pattern=r"^\d{4}$")]
 
 
