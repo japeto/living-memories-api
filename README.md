@@ -174,6 +174,9 @@ source .venv/bin/activate   # Linux / macOS / WSL
 # Install dependencies
 pip install -r requirements.txt -r requirements-dev.txt
 
+# Install git hooks (run once — applies pre-commit and commit-msg hooks for the whole team)
+pre-commit install --hook-type pre-commit --hook-type commit-msg
+
 # Copy and fill in environment variables
 cp .env.example .env
 ```

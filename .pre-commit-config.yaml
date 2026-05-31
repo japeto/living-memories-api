@@ -1,0 +1,57 @@
+# =============================================================================
+# Pre-commit hook configuration
+# Tracked in the repo — all developers share identical hooks automatically.
+#
+# Setup (run once after cloning):
+#   pip install -r requirements-dev.txt
+#   pre-commit install --hook-type pre-commit --hook-type commit-msg
+# =============================================================================
+
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+
+repos:
+
+  # ---------------------------------------------------------------------------
+  # Ruff: linter (with auto-fix) + formatter
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.7
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  # ---------------------------------------------------------------------------
+  # Local hooks (scripts live in .githooks/ — tracked, cross-platform)
+  # ---------------------------------------------------------------------------
+  - repo: local
+    hooks:
+
+      # Reject .env secrets files from being committed.
+      # .env.example is explicitly allowed.
+      - id: no-env-files
+        name: Prevent .env secrets file commits
+        entry: python .githooks/check_env_files.py
+        language: python
+        files: '^\.env(?!\.example)'
+        pass_filenames: false
+
+      # Reject debug statements in app/ source code.
+      # Catches: print(), breakpoint(), pdb.set_trace(), import pdb, import ipdb.
+      - id: no-debug-statements
+        name: No debug statements in app/
+        entry: python .githooks/check_debug_statements.py
+        language: python
+        files: ^app/.*\.py$
+        types: [python]
+
+      # Validate commit message: Conventional Commits format + Co-authored-by trailers.
+      # Runs at the commit-msg stage, not pre-commit.
+      - id: validate-commit-msg
+        name: Validate commit message
+        entry: python .githooks/validate_commit_msg.py
+        language: python
+        stages: [commit-msg]
+        always_run: true
