@@ -59,9 +59,6 @@ test-results/
 # =============================================================================
 # Project-specific
 # =============================================================================
-# AI agent runtime folder (not part of the tracked codebase)
-.agents/
-
 # Writer skill contains personal Obsidian vault paths — excluded from the repo
 .claude/skills/lm-writer/
 
