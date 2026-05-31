@@ -114,9 +114,8 @@ The FastAPI conventions shared by all agents live in `.agents/skills/fastapi/SKI
 ```
 living-memories-api/
 ├── main.py                        # FastAPI application entrypoint
-├── pyproject.toml                 # Project metadata, Ruff and pytest config
-├── requirements.txt               # Runtime dependencies
-├── requirements-dev.txt           # Development and test dependencies
+├── pyproject.toml                 # Project metadata, dependencies, Ruff and pytest config
+├── uv.lock                        # Pinned dependency lockfile (uv)
 ├── .env.example                   # Required environment variables (copy to .env)
 ├── implementation_plan.md         # Active task plan (written by lm_architect)
 │
@@ -124,9 +123,8 @@ living-memories-api/
 │   ├── core/
 │   │   ├── config.py              # pydantic-settings configuration
 │   │   └── router.py              # Central versioned APIRouter (/api/v1)
-│   └── features/
-│       └── auth/                  # Authentication (US-6: 4-digit PIN)
-│           └── router.py
+│   └── features/                 # Vertical slices: router → service → repository
+│       └── auth/                 # Authentication (US-6: 4-digit PIN)
 │
 ├── tests/
 │   ├── conftest.py                # AsyncClient fixture
@@ -166,23 +164,19 @@ living-memories-api/
 git clone <repository-url>
 cd living-memories-api
 
-# Create and activate virtual environment
-python -m venv .venv
-source .venv/bin/activate   # Linux / macOS / WSL
-# .venv\Scripts\activate    # Windows
-
-# Install dependencies
-pip install -r requirements.txt -r requirements-dev.txt
+# Create the virtual environment and install all dependencies (runtime + dev)
+uv sync
 
 # Install git hooks (run once — applies pre-commit and commit-msg hooks for the whole team)
-pre-commit install --hook-type pre-commit --hook-type commit-msg
+uv run pre-commit install --hook-type pre-commit --hook-type commit-msg
 
 # Copy and fill in environment variables
 cp .env.example .env
 ```
 
-> **Note:** `SUPABASE_URL` and `SUPABASE_KEY` are optional at startup — the app boots
-> without them. They will be validated when Supabase-dependent features are implemented.
+> **Note:** `SUPABASE_URL` and `SUPABASE_KEY` are **required at startup**. The app
+> creates the Supabase client in its lifespan and fails fast with a clear error if
+> either is missing. (Tests do not run the lifespan, so they do not need real keys.)
 
 ---
 
@@ -190,10 +184,10 @@ cp .env.example .env
 
 ```bash
 # Development server with hot-reload (recommended)
-fastapi dev main.py
+uv run fastapi dev main.py
 
 # Production server
-uvicorn main:app --host 0.0.0.0 --port 8000
+uv run uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 Once running, open:
@@ -208,10 +202,10 @@ Once running, open:
 
 ```bash
 # Run all tests with verbose output
-python -m pytest tests/ -v
+uv run pytest tests/ -v
 
 # Run with coverage report
-python -m pytest tests/ -v --cov=app --cov-report=term-missing
+uv run pytest tests/ -v --cov=app --cov-report=term-missing
 ```
 
 ---
@@ -220,13 +214,13 @@ python -m pytest tests/ -v --cov=app --cov-report=term-missing
 
 ```bash
 # Lint and format check
-ruff check .
+uv run ruff check .
 
 # Auto-fix safe issues
-ruff check . --fix
+uv run ruff check . --fix
 
 # Format
-ruff format .
+uv run ruff format .
 ```
 
 ---

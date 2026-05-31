@@ -3,8 +3,8 @@
 # Tracked in the repo — all developers share identical hooks automatically.
 #
 # Setup (run once after cloning):
-#   pip install -r requirements-dev.txt
-#   pre-commit install --hook-type pre-commit --hook-type commit-msg
+#   uv sync
+#   uv run pre-commit install --hook-type pre-commit --hook-type commit-msg
 # =============================================================================
 
 default_install_hook_types:
