@@ -53,6 +53,7 @@ D3 — DISCERNMENT (Critical Self-Evaluation)
   2. No unused imports.
   3. No synchronous blocking calls in endpoints.
   4. The app boots: `uvicorn main:app`.
+  5. `pre-commit run --files <modified files>` → zero violations. This mirrors exactly what the commit hook will run — if it fails here it will fail at commit time.
 - If you hit a problem the plan did not anticipate, STOP. Do not write dirty workarounds — report the issue to the architect or the user.
 
 ================================================================================
