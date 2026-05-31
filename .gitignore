@@ -1,0 +1,88 @@
+# =============================================================================
+# Python
+# =============================================================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Distribution / packaging
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+MANIFEST
+
+# =============================================================================
+# Virtual environments
+# =============================================================================
+.venv/
+venv/
+env/
+ENV/
+
+# =============================================================================
+# FastAPI tooling (uv, Ruff — per .agents/skills/fastapi)
+# =============================================================================
+.uv/
+.ruff_cache/
+
+# pyproject.toml build artifacts
+.pdm.toml
+__pypackages__/
+
+# =============================================================================
+# Testing & coverage
+# =============================================================================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+nosetests.xml
+test-results/
+
+# =============================================================================
+# Secrets & local environment config
+# =============================================================================
+.env
+.env.*
+!.env.example
+
+# =============================================================================
+# Project-specific
+# =============================================================================
+# AI agent runtime folder (not part of the tracked codebase)
+.agents/
+
+# Writer skill contains personal Obsidian vault paths — excluded from the repo
+.claude/skills/lm-writer/
+
+# =============================================================================
+# IDE & editors
+# =============================================================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.spyderproject.cfg
+.spyproject/
+
+# =============================================================================
+# OS
+# =============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
