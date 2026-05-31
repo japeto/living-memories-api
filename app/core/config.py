@@ -8,9 +8,17 @@ class Settings(BaseSettings):
     VERSION: str = "0.1.0"
     API_V1_STR: str = "/api/v1"
 
-    # Supabase — populated via .env when features are implemented
+    # Supabase connection — populated via .env.
+    # SUPABASE_KEY is the anon key: request-scoped access that respects RLS.
     SUPABASE_URL: str | None = None
     SUPABASE_KEY: str | None = None
+    # Service-role key: server-side privileged operations only. Never exposed in a
+    # response model and never logged.
+    SUPABASE_SERVICE_ROLE_KEY: str | None = None
+    # Storage bucket holding the voice-message audio files.
+    SUPABASE_STORAGE_BUCKET: str = "memories-audio"
+    # Shared timeout (seconds) for the PostgREST and Storage sub-clients.
+    SUPABASE_TIMEOUT: int = 10
 
 
 settings = Settings()
