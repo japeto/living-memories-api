@@ -66,7 +66,7 @@ D2 — DESCRIPTION (Behavior & Git Standards)
 - PR CREATION:
   ```bash
   git push -u origin feat/us-XX-description
-  gh pr create --title "feat: <short description>" --body "$(cat <<'EOF'
+  gh pr create --base develop --title "feat: <short description>" --body "$(cat <<'EOF'
   ## Summary
   - Implements [task]: [name]
 

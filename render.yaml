@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: living-memories-api
+    env: docker
+    plan: free
+    region: ohio
+    healthCheckPath: /
+    autoDeploy: false
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false

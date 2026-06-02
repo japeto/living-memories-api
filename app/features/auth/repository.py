@@ -1,5 +1,5 @@
+from datetime import datetime
 from typing import Any
-from uuid import UUID
 
 from supabase import AsyncClient
 
@@ -8,13 +8,60 @@ class AuthRepository:
     def __init__(self, client: AsyncClient) -> None:
         self._client = client
 
-    async def get_user(self, user_id: UUID) -> dict[str, Any] | None:
+    async def get_user_by_email(self, email: str) -> dict[str, Any] | None:
         response = (
             await self._client.table("users")
-            .select("id, pin_hash")
-            .eq("id", str(user_id))
+            .select("id, pin_hash, display_name")
+            .eq("email", email)
             .limit(1)
             .execute()
         )
         rows = response.data or []
         return rows[0] if rows else None
+
+    async def get_user_by_id(self, user_id: str) -> dict[str, Any] | None:
+        response = (
+            await self._client.table("users")
+            .select("id, email, display_name")
+            .eq("id", user_id)
+            .limit(1)
+            .execute()
+        )
+        rows = response.data or []
+        return rows[0] if rows else None
+
+    async def create_user(self, email: str, display_name: str, pin_hash: str) -> dict[str, Any]:
+        """Insert a new user into the database."""
+        response = (
+            await self._client.table("users")
+            .insert({"email": email, "display_name": display_name, "pin_hash": pin_hash})
+            .execute()
+        )
+        return response.data[0]
+
+    async def create_refresh_token(
+        self, user_id: str, token: str, expires_at: datetime
+    ) -> dict[str, Any]:
+        """Store a refresh token in the database."""
+        response = (
+            await self._client.table("refresh_tokens")
+            .insert({"user_id": user_id, "token": token, "expires_at": expires_at.isoformat()})
+            .execute()
+        )
+        return response.data[0]
+
+    async def get_refresh_token(self, token: str) -> dict[str, Any] | None:
+        """Retrieve a refresh token from the database."""
+        response = (
+            await self._client.table("refresh_tokens")
+            .select("*")
+            .eq("token", token)
+            .limit(1)
+            .execute()
+        )
+        rows = response.data or []
+        return rows[0] if rows else None
+
+    async def delete_refresh_token(self, token: str) -> None:
+        """Delete a refresh token from the database (e.g. for logout or rotation)."""
+        await self._client.table("refresh_tokens").delete().eq("token", token).execute()
