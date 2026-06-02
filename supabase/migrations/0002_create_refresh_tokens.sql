@@ -1,4 +1,4 @@
--- Crear tabla de refresh_tokens
+-- Create refresh_tokens table
 CREATE TABLE IF NOT EXISTS public.refresh_tokens (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -7,16 +7,16 @@ CREATE TABLE IF NOT EXISTS public.refresh_tokens (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Índices para búsqueda rápida y limpieza
+-- Indexes for fast lookup and cleanup
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token ON public.refresh_tokens(token);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON public.refresh_tokens(user_id);
 
--- Configurar RLS (Row Level Security)
+-- Configure Row Level Security (RLS)
 ALTER TABLE public.refresh_tokens ENABLE ROW LEVEL SECURITY;
 
--- Políticas de RLS
--- Nota: En la arquitectura actual, el backend (FastAPI) interactúa usando la service_role key, 
--- por lo que sobrepasa estas políticas. Se agregan por seguridad si alguna vez se expone al cliente.
+-- RLS Policies
+-- Note: In the current architecture, the backend (FastAPI) interacts using the service_role key,
+-- so it bypasses these policies. They are added for security if it is ever exposed to the client.
 CREATE POLICY "Users can only view their own refresh tokens"
     ON public.refresh_tokens FOR SELECT
     USING (auth.uid() = user_id);
