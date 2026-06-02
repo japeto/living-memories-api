@@ -10,10 +10,17 @@ class LoginRequest(BaseModel):
 
 class LoginResponse(BaseModel):
     user_id: str
+    display_name: str
     authenticated: bool
     access_token: str
     refresh_token: str
     token_type: str = "Bearer"
+
+
+class UserProfileResponse(BaseModel):
+    user_id: str
+    email: EmailStr
+    display_name: str
 
 
 class RegisterRequest(BaseModel):

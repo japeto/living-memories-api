@@ -11,8 +11,19 @@ class AuthRepository:
     async def get_user_by_email(self, email: str) -> dict[str, Any] | None:
         response = (
             await self._client.table("users")
-            .select("id, pin_hash")
+            .select("id, pin_hash, display_name")
             .eq("email", email)
+            .limit(1)
+            .execute()
+        )
+        rows = response.data or []
+        return rows[0] if rows else None
+
+    async def get_user_by_id(self, user_id: str) -> dict[str, Any] | None:
+        response = (
+            await self._client.table("users")
+            .select("id, email, display_name")
+            .eq("id", user_id)
             .limit(1)
             .execute()
         )

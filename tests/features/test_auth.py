@@ -12,7 +12,7 @@ async def test_login_success_returns_200(
     client: AsyncClient, supabase_mock: MagicMock, mocker: MockerFixture
 ) -> None:
     supabase_mock.table.return_value.execute.return_value.data = [
-        {"id": VALID_UUID, "pin_hash": "hashed-pin"}
+        {"id": VALID_UUID, "pin_hash": "hashed-pin", "display_name": "Test User"}
     ]
     mocker.patch("app.features.auth.service.verify_password", return_value=True)
 
@@ -21,6 +21,7 @@ async def test_login_success_returns_200(
     assert response.status_code == 200
     data = response.json()
     assert data["user_id"] == VALID_UUID
+    assert data["display_name"] == "Test User"
     assert data["authenticated"] is True
     assert "access_token" in data
     assert "refresh_token" in data
@@ -42,7 +43,7 @@ async def test_login_wrong_pin_returns_401(
     client: AsyncClient, supabase_mock: MagicMock, mocker: MockerFixture
 ) -> None:
     supabase_mock.table.return_value.execute.return_value.data = [
-        {"id": VALID_UUID, "pin_hash": "hashed-pin"}
+        {"id": VALID_UUID, "pin_hash": "hashed-pin", "display_name": "Test User"}
     ]
     mocker.patch("app.features.auth.service.verify_password", return_value=False)
 
@@ -194,12 +195,17 @@ async def test_refresh_success_returns_200(
     supabase_mock.table.return_value.execute.return_value.data = [
         {"user_id": VALID_UUID, "expires_at": "2099-01-01T00:00:00+00:00"}
     ]
+    mocker.patch(
+        "app.features.auth.repository.AuthRepository.get_user_by_id",
+        return_value={"id": VALID_UUID, "email": "test@example.com", "display_name": "Test User"},
+    )
 
     response = await client.post("/api/v1/auth/refresh", json={"refresh_token": "valid-token"})
 
     assert response.status_code == 200
     data = response.json()
     assert data["user_id"] == VALID_UUID
+    assert data["display_name"] == "Test User"
     assert data["authenticated"] is True
     assert "access_token" in data
     assert "refresh_token" in data
@@ -260,3 +266,35 @@ async def test_logout_db_unavailable_returns_503(
 
     assert response.status_code == 503
     assert response.json()["detail"] == "database unavailable"
+
+
+async def test_get_me_success_returns_200(client: AsyncClient, mocker: MockerFixture) -> None:
+    mocker.patch(
+        "app.features.auth.repository.AuthRepository.get_user_by_id",
+        return_value={"id": VALID_UUID, "email": "test@example.com", "display_name": "Test User"},
+    )
+    # mock token decode
+    mocker.patch("app.core.auth.decode_token", return_value={"sub": VALID_UUID})
+
+    response = await client.get("/api/v1/auth/me", headers={"Authorization": "Bearer valid-token"})
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["user_id"] == VALID_UUID
+    assert data["email"] == "test@example.com"
+    assert data["display_name"] == "Test User"
+
+
+async def test_get_me_not_found_returns_404(client: AsyncClient, mocker: MockerFixture) -> None:
+    mocker.patch("app.features.auth.repository.AuthRepository.get_user_by_id", return_value=None)
+    mocker.patch("app.core.auth.decode_token", return_value={"sub": VALID_UUID})
+
+    response = await client.get("/api/v1/auth/me", headers={"Authorization": "Bearer valid-token"})
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "User not found"
+
+
+async def test_get_me_unauthorized_returns_401(client: AsyncClient) -> None:
+    response = await client.get("/api/v1/auth/me")
+    assert response.status_code == 401
