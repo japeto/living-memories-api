@@ -18,3 +18,12 @@ class AuthRepository:
         )
         rows = response.data or []
         return rows[0] if rows else None
+
+    async def create_user(self, email: str, display_name: str, pin_hash: str) -> dict[str, Any]:
+        """Insert a new user into the database."""
+        response = (
+            await self._client.table("users")
+            .insert({"email": email, "display_name": display_name, "pin_hash": pin_hash})
+            .execute()
+        )
+        return response.data[0]
