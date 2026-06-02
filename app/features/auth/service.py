@@ -15,6 +15,7 @@ from app.features.auth.schemas import (
     RefreshTokenRequest,
     RegisterRequest,
     RegisterResponse,
+    UserProfileResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -63,6 +64,7 @@ class AuthService:
 
         return LoginResponse(
             user_id=user_id,
+            display_name=user["display_name"],
             authenticated=True,
             access_token=access_token,
             refresh_token=refresh_token,
@@ -139,10 +141,26 @@ class AuthService:
         except (ConnectError, TimeoutException, APIError) as exc:
             logger.error("Supabase err deleting refresh token: %s: %s", type(exc).__name__, exc)
 
+        try:
+            user = await self._repository.get_user_by_id(user_id)
+        except (ConnectError, TimeoutException, APIError) as exc:
+            logger.error("Supabase error getting user: %s: %s", type(exc).__name__, exc)
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="database unavailable",
+            ) from exc
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+
         access_token, new_refresh_token = await self._generate_tokens(user_id)
 
         return LoginResponse(
             user_id=user_id,
+            display_name=user["display_name"],
             authenticated=True,
             access_token=access_token,
             refresh_token=new_refresh_token,
@@ -157,3 +175,25 @@ class AuthService:
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="database unavailable",
             ) from exc
+
+    async def get_user_profile(self, user_id: str) -> UserProfileResponse:
+        try:
+            user = await self._repository.get_user_by_id(user_id)
+        except (ConnectError, TimeoutException, APIError) as exc:
+            logger.error("Supabase error getting user: %s: %s", type(exc).__name__, exc)
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="database unavailable",
+            ) from exc
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+
+        return UserProfileResponse(
+            user_id=str(user["id"]),
+            email=user["email"],
+            display_name=user["display_name"],
+        )
