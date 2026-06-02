@@ -1,9 +1,9 @@
 from typing import Annotated
 
 from fastapi import Depends, Request
-from supabase import AsyncClient, AsyncClientOptions, acreate_client
 
 from app.core.config import settings
+from supabase import AsyncClient, AsyncClientOptions, acreate_client
 
 
 async def init_supabase() -> AsyncClient:
