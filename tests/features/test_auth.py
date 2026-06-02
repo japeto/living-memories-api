@@ -1,54 +1,78 @@
 from unittest.mock import MagicMock
 
-from httpx import AsyncClient
+from httpx import AsyncClient, ConnectError
 from postgrest.exceptions import APIError
 from pytest_mock import MockerFixture
 
 VALID_UUID = "00000000-0000-0000-0000-000000000001"
+VALID_EMAIL = "test@example.com"
 
 
-async def test_login_existing_user_returns_authenticated(
-    client: AsyncClient, supabase_mock: MagicMock
+async def test_login_success_returns_200(
+    client: AsyncClient, supabase_mock: MagicMock, mocker: MockerFixture
 ) -> None:
     supabase_mock.table.return_value.execute.return_value.data = [
         {"id": VALID_UUID, "pin_hash": "hashed-pin"}
     ]
+    mocker.patch("app.features.auth.service.verify_password", return_value=True)
 
-    response = await client.post("/api/v1/auth/login", json={"user_id": VALID_UUID, "pin": "1234"})
+    response = await client.post("/api/v1/auth/login", json={"email": VALID_EMAIL, "pin": "1234"})
 
     assert response.status_code == 200
     assert response.json() == {"user_id": VALID_UUID, "authenticated": True}
 
 
-async def test_login_unknown_user_returns_401(
+async def test_login_unknown_email_returns_401(
     client: AsyncClient, supabase_mock: MagicMock
 ) -> None:
     supabase_mock.table.return_value.execute.return_value.data = []
 
-    response = await client.post("/api/v1/auth/login", json={"user_id": VALID_UUID, "pin": "1234"})
+    response = await client.post("/api/v1/auth/login", json={"email": VALID_EMAIL, "pin": "1234"})
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid credentials"
 
 
-async def test_login_invalid_uuid_returns_422(client: AsyncClient) -> None:
-    response = await client.post(
-        "/api/v1/auth/login", json={"user_id": "not-a-uuid", "pin": "1234"}
-    )
+async def test_login_wrong_pin_returns_401(
+    client: AsyncClient, supabase_mock: MagicMock, mocker: MockerFixture
+) -> None:
+    supabase_mock.table.return_value.execute.return_value.data = [
+        {"id": VALID_UUID, "pin_hash": "hashed-pin"}
+    ]
+    mocker.patch("app.features.auth.service.verify_password", return_value=False)
 
+    response = await client.post("/api/v1/auth/login", json={"email": VALID_EMAIL, "pin": "9999"})
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid credentials"
+
+
+async def test_login_invalid_email_returns_422(client: AsyncClient) -> None:
+    response = await client.post(
+        "/api/v1/auth/login", json={"email": "not-an-email", "pin": "1234"}
+    )
     assert response.status_code == 422
 
 
 async def test_login_non_numeric_pin_returns_422(client: AsyncClient) -> None:
-    response = await client.post("/api/v1/auth/login", json={"user_id": VALID_UUID, "pin": "abcd"})
-
+    response = await client.post("/api/v1/auth/login", json={"email": VALID_EMAIL, "pin": "abcd"})
     assert response.status_code == 422
 
 
 async def test_login_wrong_length_pin_returns_422(client: AsyncClient) -> None:
-    response = await client.post("/api/v1/auth/login", json={"user_id": VALID_UUID, "pin": "12"})
-
+    response = await client.post("/api/v1/auth/login", json={"email": VALID_EMAIL, "pin": "12"})
     assert response.status_code == 422
+
+
+async def test_login_db_unavailable_returns_503(
+    client: AsyncClient, supabase_mock: MagicMock
+) -> None:
+    supabase_mock.table.return_value.execute.side_effect = ConnectError("db down")
+
+    response = await client.post("/api/v1/auth/login", json={"email": VALID_EMAIL, "pin": "1234"})
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "database unavailable"
 
 
 async def test_register_successful_returns_201(
