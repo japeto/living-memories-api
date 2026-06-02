@@ -20,5 +20,11 @@ class Settings(BaseSettings):
     # Shared timeout (seconds) for the PostgREST and Storage sub-clients.
     SUPABASE_TIMEOUT: int = 10
 
+    # JWT Settings
+    SECRET_KEY: str = "changeme"  # Should be overridden in .env
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 3 * 60  # 3 hours
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30  # 30 days
+
 
 settings = Settings()

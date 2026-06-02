@@ -11,6 +11,9 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     user_id: str
     authenticated: bool
+    access_token: str
+    refresh_token: str
+    token_type: str = "Bearer"
 
 
 class RegisterRequest(BaseModel):
@@ -32,3 +35,10 @@ class RegisterResponse(BaseModel):
     email: EmailStr
     display_name: str
     authenticated: bool
+    access_token: str
+    refresh_token: str
+    token_type: str = "Bearer"
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str

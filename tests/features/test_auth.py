@@ -19,7 +19,12 @@ async def test_login_success_returns_200(
     response = await client.post("/api/v1/auth/login", json={"email": VALID_EMAIL, "pin": "1234"})
 
     assert response.status_code == 200
-    assert response.json() == {"user_id": VALID_UUID, "authenticated": True}
+    data = response.json()
+    assert data["user_id"] == VALID_UUID
+    assert data["authenticated"] is True
+    assert "access_token" in data
+    assert "refresh_token" in data
+    assert data["token_type"] == "Bearer"
 
 
 async def test_login_unknown_email_returns_401(
@@ -98,12 +103,14 @@ async def test_register_successful_returns_201(
     )
 
     assert response.status_code == 201
-    assert response.json() == {
-        "user_id": VALID_UUID,
-        "email": "test@example.com",
-        "display_name": "Test User",
-        "authenticated": True,
-    }
+    data = response.json()
+    assert data["user_id"] == VALID_UUID
+    assert data["email"] == "test@example.com"
+    assert data["display_name"] == "Test User"
+    assert data["authenticated"] is True
+    assert "access_token" in data
+    assert "refresh_token" in data
+    assert data["token_type"] == "Bearer"
 
 
 async def test_register_missing_fields_returns_422(client: AsyncClient) -> None:
@@ -179,3 +186,77 @@ async def test_register_existing_email_returns_409(
 
     assert response.status_code == 409
     assert response.json()["detail"] == "Email already registered"
+
+
+async def test_refresh_success_returns_200(
+    client: AsyncClient, supabase_mock: MagicMock, mocker: MockerFixture
+) -> None:
+    supabase_mock.table.return_value.execute.return_value.data = [
+        {"user_id": VALID_UUID, "expires_at": "2099-01-01T00:00:00+00:00"}
+    ]
+
+    response = await client.post("/api/v1/auth/refresh", json={"refresh_token": "valid-token"})
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["user_id"] == VALID_UUID
+    assert data["authenticated"] is True
+    assert "access_token" in data
+    assert "refresh_token" in data
+    assert data["token_type"] == "Bearer"
+
+
+async def test_refresh_expired_token_returns_401(
+    client: AsyncClient, supabase_mock: MagicMock
+) -> None:
+    supabase_mock.table.return_value.execute.return_value.data = [
+        {"user_id": VALID_UUID, "expires_at": "2000-01-01T00:00:00+00:00"}
+    ]
+
+    response = await client.post("/api/v1/auth/refresh", json={"refresh_token": "expired-token"})
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid or expired refresh token"
+
+
+async def test_refresh_invalid_token_returns_401(
+    client: AsyncClient, supabase_mock: MagicMock
+) -> None:
+    supabase_mock.table.return_value.execute.return_value.data = []
+
+    response = await client.post("/api/v1/auth/refresh", json={"refresh_token": "invalid-token"})
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid or expired refresh token"
+
+
+async def test_refresh_db_unavailable_returns_503(
+    client: AsyncClient, supabase_mock: MagicMock
+) -> None:
+    supabase_mock.table.return_value.execute.side_effect = ConnectError("db down")
+
+    response = await client.post("/api/v1/auth/refresh", json={"refresh_token": "valid-token"})
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "database unavailable"
+
+
+async def test_logout_success_returns_204(client: AsyncClient, supabase_mock: MagicMock) -> None:
+    supabase_mock.table.return_value.execute.return_value.data = []
+
+    response = await client.post("/api/v1/auth/logout", json={"refresh_token": "valid-token"})
+
+    assert response.status_code == 204
+    # Supabase execute should be called once for delete
+    assert supabase_mock.table.return_value.execute.call_count >= 1
+
+
+async def test_logout_db_unavailable_returns_503(
+    client: AsyncClient, supabase_mock: MagicMock
+) -> None:
+    supabase_mock.table.return_value.execute.side_effect = ConnectError("db down")
+
+    response = await client.post("/api/v1/auth/logout", json={"refresh_token": "valid-token"})
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "database unavailable"

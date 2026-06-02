@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 
 from supabase import AsyncClient
@@ -26,3 +27,30 @@ class AuthRepository:
             .execute()
         )
         return response.data[0]
+
+    async def create_refresh_token(
+        self, user_id: str, token: str, expires_at: datetime
+    ) -> dict[str, Any]:
+        """Store a refresh token in the database."""
+        response = (
+            await self._client.table("refresh_tokens")
+            .insert({"user_id": user_id, "token": token, "expires_at": expires_at.isoformat()})
+            .execute()
+        )
+        return response.data[0]
+
+    async def get_refresh_token(self, token: str) -> dict[str, Any] | None:
+        """Retrieve a refresh token from the database."""
+        response = (
+            await self._client.table("refresh_tokens")
+            .select("*")
+            .eq("token", token)
+            .limit(1)
+            .execute()
+        )
+        rows = response.data or []
+        return rows[0] if rows else None
+
+    async def delete_refresh_token(self, token: str) -> None:
+        """Delete a refresh token from the database (e.g. for logout or rotation)."""
+        await self._client.table("refresh_tokens").delete().eq("token", token).execute()
