@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from httpx import ConnectError, TimeoutException
 from postgrest.exceptions import APIError
 
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash, verify_password
 from app.features.auth.repository import AuthRepository
 from app.features.auth.schemas import (
     LoginRequest,
@@ -22,21 +22,21 @@ class AuthService:
 
     async def login(self, payload: LoginRequest) -> LoginResponse:
         try:
-            user = await self._repository.get_user(payload.user_id)
+            user = await self._repository.get_user_by_email(payload.email)
         except (ConnectError, TimeoutException, APIError) as exc:
             logger.error("Supabase error: %s: %s", type(exc).__name__, exc)
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="database unavailable",
             ) from exc
-        if user is None:
+
+        if user is None or not verify_password(payload.pin, user["pin_hash"]):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials",
             )
-        # TODO(US-6): verify payload.pin against user["pin_hash"] with a constant-time
-        # password hasher (the hashing dependency is introduced in the US-6 task).
-        return LoginResponse(user_id=str(payload.user_id), authenticated=True)
+
+        return LoginResponse(user_id=str(user["id"]), authenticated=True)
 
     async def register(self, payload: RegisterRequest) -> RegisterResponse:
         try:
@@ -47,7 +47,6 @@ class AuthService:
                 pin_hash=pin_hash,
             )
         except APIError as exc:
-            # Check for unique constraint violation code
             if exc.code == "23505":
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,

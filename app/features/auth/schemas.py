@@ -1,11 +1,10 @@
 from typing import Annotated
-from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class LoginRequest(BaseModel):
-    user_id: UUID
+    email: EmailStr
     pin: Annotated[str, Field(pattern=r"^\d{4}$")]
 
 
