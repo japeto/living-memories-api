@@ -22,6 +22,8 @@ async def test_upload_memory_success_returns_201(
             "topic": "General",
             "mood": "Tranquila",
             "reminder_text": None,
+            "title": None,
+            "status": "processing",
             "created_at": "2026-06-03T00:00:00Z",
         }
     ]
@@ -34,13 +36,14 @@ async def test_upload_memory_success_returns_201(
         json=payload,
     )
 
-    assert response.status_code == 201
+    assert response.status_code == 202
     resp_data = response.json()
     assert resp_data["id"] == "new-memory-id"
     assert resp_data["user_id"] == VALID_UUID
     assert resp_data["text"] == "This is a test memory"
     assert resp_data["topic"] == "General"
     assert resp_data["mood"] == "Tranquila"
+    assert resp_data["status"] == "processing"
 
 
 @pytest.mark.asyncio
@@ -104,6 +107,8 @@ async def test_get_memories_success_returns_200(
             "topic": "General",
             "mood": "Tranquila",
             "reminder_text": None,
+            "title": None,
+            "status": "completed",
             "created_at": "2026-06-03T00:00:00Z",
         }
     ]
