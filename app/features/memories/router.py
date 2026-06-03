@@ -26,3 +26,19 @@ async def upload_memory(
         user_id=user_id,
         request=request,
     )
+
+
+@router.get(
+    "",
+    response_model=list[MemoryResponse],
+    status_code=status.HTTP_200_OK,
+    summary="List all memories for the user",
+)
+async def list_memories(
+    user_id: CurrentUserDep,
+    service: MemoriesService = Depends(get_memories_service),
+) -> list[MemoryResponse]:
+    """
+    Returns a list of all memories belonging to the current user.
+    """
+    return await service.list_memories(user_id=user_id)

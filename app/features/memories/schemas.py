@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 
 class MemoryCreateRequest(BaseModel):
-    transcribed_text: str
+    text: str
 
 
 class MemoryResponse(BaseModel):
@@ -12,7 +12,8 @@ class MemoryResponse(BaseModel):
 
     id: str
     user_id: str
-    title: str | None = None
-    transcribed_text: str
-    tags: list[str] = Field(default_factory=list)
+    text: str
+    topic: str | None = None
+    mood: str | None = None
+    reminder_text: str | None = None
     created_at: datetime

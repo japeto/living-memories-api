@@ -14,23 +14,27 @@ class MemoriesService:
         """
         Processes the transcribed text and saves the structured memory in the database.
         """
-        transcribed_text = request.transcribed_text
+        text = request.text
 
-        # 1. Processing (Mock NLP logic for tags and title)
-        # Extract tags and a title from transcribed text
-        # For now, use the first 50 characters as the title
-        title = transcribed_text[:50] + "..." if len(transcribed_text) > 50 else transcribed_text
-        tags = ["mock-tag-1", "mock-tag-2"]
+        # 1. Processing (Mock NLP logic for topic and mood)
+        topic = "General"
+        mood = "Tranquila"
 
         # 2. Save to Database
         memory_data = {
             "user_id": user_id,
-            "title": title,
-            "transcribed_text": transcribed_text,
-            "tags": tags,
+            "text": text,
+            "topic": topic,
+            "mood": mood,
         }
 
         return await self.repo.create_memory(memory_data)
+
+    async def list_memories(self, user_id: str) -> list[MemoryResponse]:
+        """
+        Returns all memories for the given user.
+        """
+        return await self.repo.get_memories(user_id)
 
 
 def get_memories_service(
