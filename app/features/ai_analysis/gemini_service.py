@@ -34,12 +34,12 @@ menciona algo que deba recordar (una cita médica, comprar algo, llamar a alguie
 extráelo en reminder_text. Si no hay nada que recordar, déjalo nulo.
 
 Devuelve la respuesta estrictamente en este formato JSON:
-{
+{{
   "topic": "...",
   "mood": "...",
   "title": "...",
   "reminder_text": "..." // o null
-}
+}}
 
 Transcripción: {text}
 """
