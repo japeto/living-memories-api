@@ -20,6 +20,19 @@ class MemoriesRepository:
             raise RuntimeError("Failed to create memory in database")
         return MemoryResponse(**response.data[0])
 
+    async def get_memories(self, user_id: str) -> list[MemoryResponse]:
+        """
+        Retrieves all memories for a user, sorted by newest first.
+        """
+        response = (
+            await self.client.table("memories")
+            .select("*")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .execute()
+        )
+        return [MemoryResponse(**item) for item in response.data]
+
 
 def get_memories_repository(client: AsyncClient = Depends(get_supabase)) -> MemoriesRepository:
     return MemoriesRepository(client)

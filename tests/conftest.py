@@ -18,6 +18,7 @@ def supabase_mock() -> MagicMock:
     query.select.return_value = query
     query.eq.return_value = query
     query.limit.return_value = query
+    query.order.return_value = query
     query.insert.return_value = query
     query.delete.return_value = query
     query.execute = AsyncMock(return_value=MagicMock(data=[]))
