@@ -13,11 +13,11 @@ PROMPT_TEMPLATE = """
 Eres un asistente experto en psicología geriátrica y análisis de lenguaje.
 Analiza la siguiente transcripción de voz de un adulto mayor y extrae información estructurada.
 Clasifica el tema (topic) en una de las siguientes opciones exactas:
-- Familia y Amigos
-- Salud y Bienestar
-- Recuerdos de Juventud
-- Actividades y Rutina
-- Reflexiones y Consejos
+- Familia
+- Salud
+- Lecturas
+- Bienestar
+- Cotidiano
 
 Clasifica el estado de ánimo (mood) en una de las siguientes opciones exactas:
 - Entusiasmado
@@ -61,7 +61,7 @@ class GeminiService:
         if not self.client:
             # Fallback for local testing without API key
             return GeminiEvaluationResult(
-                topic="Familia y Amigos",
+                topic="Familia",
                 mood="Tranquilo",
                 title="Memoria sin evaluar",
                 reminder_text=None,
