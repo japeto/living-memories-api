@@ -26,5 +26,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 3 * 60  # 3 hours
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30  # 30 days
 
+    # Gemini Settings
+    GEMINI_API_KEY: str | None = None
+
 
 settings = Settings()
