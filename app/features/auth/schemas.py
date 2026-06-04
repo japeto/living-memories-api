@@ -17,12 +17,6 @@ class LoginResponse(BaseModel):
     token_type: str = "Bearer"
 
 
-class UserProfileResponse(BaseModel):
-    user_id: str
-    email: EmailStr
-    display_name: str
-
-
 class RegisterRequest(BaseModel):
     display_name: Annotated[str, Field(min_length=2)]
     email: EmailStr
