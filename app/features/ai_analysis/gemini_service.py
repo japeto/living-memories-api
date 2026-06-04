@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import datetime
 
 from google import genai
 from google.genai import types
@@ -11,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 PROMPT_TEMPLATE = """
 Eres un asistente experto en psicología geriátrica y análisis de lenguaje.
+La fecha y hora actuales son: {current_time}
 Analiza la siguiente transcripción de voz de un adulto mayor y extrae información estructurada.
 Clasifica el tema (topic) en una de las siguientes opciones exactas:
 - Familia
@@ -29,16 +31,22 @@ Clasifica el estado de ánimo (mood) en una de las siguientes opciones exactas:
 - Ansioso / Preocupado
 - Frustrado / Enojado
 
-Además, genera un título (title) corto que resuma la memoria, y si el usuario
-menciona algo que deba recordar (una cita médica, comprar algo, llamar a alguien),
-extráelo en reminder_text. Si no hay nada que recordar, déjalo nulo.
+Además, genera un título (title) corto que resuma la memoria. Si el usuario
+menciona cosas que deba recordar (citas médicas, comprar cosas, llamar a alguien),
+extráelas como una lista de recordatorios. Si no hay nada que recordar, devuelve una lista vacía.
 
 Devuelve la respuesta estrictamente en este formato JSON:
 {{
   "topic": "...",
   "mood": "...",
   "title": "...",
-  "reminder_text": "..." // o null
+  "reminders": [
+    {{
+      "title": "...",
+      "due_date": "YYYY-MM-DDTHH:MM:SSZ",
+      "description": "..."
+    }}
+  ]
 }}
 
 Transcripción: {text}
@@ -64,10 +72,11 @@ class GeminiService:
                 topic="Familia",
                 mood="Tranquilo",
                 title="Memoria sin evaluar",
-                reminder_text=None,
+                reminders=[],
             )
 
-        prompt = PROMPT_TEMPLATE.format(text=text)
+        current_time = datetime.now().isoformat()
+        prompt = PROMPT_TEMPLATE.format(text=text, current_time=current_time)
 
         try:
             # Note: We use the async client `client.aio`
