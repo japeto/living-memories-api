@@ -18,6 +18,8 @@ def supabase_mock() -> MagicMock:
     query.select.return_value = query
     query.eq.return_value = query
     query.limit.return_value = query
+    query.maybe_single.return_value = query
+    query.single.return_value = query
     query.order.return_value = query
     query.insert.return_value = query
     query.update.return_value = query
