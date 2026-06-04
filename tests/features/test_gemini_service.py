@@ -74,3 +74,41 @@ async def test_evaluate_memory_empty_reminders(mocker) -> None:
     # Assert
     assert result.topic == "Familia"
     assert len(result.reminders) == 0
+
+
+@pytest.mark.asyncio
+async def test_evaluate_memory_naive_date_injects_tzinfo(mocker) -> None:
+    # Arrange
+    mocker.patch("app.features.ai_analysis.gemini_service.settings.GEMINI_API_KEY", "dummy-key")
+
+    mock_client_class = mocker.patch("app.features.ai_analysis.gemini_service.genai.Client")
+    mock_client_instance = mock_client_class.return_value
+
+    mock_response = mocker.MagicMock()
+    # Notice the due_date lacks 'Z' or offset, meaning it's naive
+    mock_response.text = """
+{
+  "topic": "Salud",
+  "mood": "Tranquilo",
+  "title": "Cita",
+  "reminders": [
+    {
+      "title": "Naive date test",
+      "due_date": "2026-06-15T09:00:00",
+      "description": "No timezone offset provided"
+    }
+  ]
+}
+"""
+    mock_client_instance.aio.models.generate_content = mocker.AsyncMock(return_value=mock_response)
+    service = GeminiService()
+
+    # Act
+    # We pass a specific timezone
+    result = await service.evaluate_memory("Test", time_zone="America/New_York")
+
+    # Assert
+    assert len(result.reminders) == 1
+    # It should have been given the America/New_York tzinfo
+    assert result.reminders[0].due_date.tzinfo is not None
+    assert str(result.reminders[0].due_date.tzinfo) == "America/New_York"

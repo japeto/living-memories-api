@@ -35,7 +35,7 @@ async def test_evaluate_and_update_memory_creates_reminders_when_present() -> No
     await service.evaluate_and_update_memory("mem-123", "Test text")
 
     # Assert
-    mock_gemini_service.evaluate_memory.assert_awaited_once_with("Test text")
+    mock_gemini_service.evaluate_memory.assert_awaited_once_with("Test text", "UTC")
     mock_repo.update_memory.assert_awaited_once_with(
         "mem-123",
         {

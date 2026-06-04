@@ -31,6 +31,7 @@ async def upload_memory(
         service.evaluate_and_update_memory,
         memory.id,
         request.text,
+        request.time_zone,
     )
     return memory
 

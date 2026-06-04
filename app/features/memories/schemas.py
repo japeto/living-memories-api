@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict
 
 class MemoryCreateRequest(BaseModel):
     text: str
+    time_zone: str = "UTC"
 
 
 class GeminiReminder(BaseModel):
