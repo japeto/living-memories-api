@@ -2,7 +2,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
-from app.core.auth import CurrentUserDep
 from app.core.supabase import SupabaseDep
 from app.features.auth.repository import AuthRepository
 from app.features.auth.schemas import (
@@ -11,7 +10,6 @@ from app.features.auth.schemas import (
     RefreshTokenRequest,
     RegisterRequest,
     RegisterResponse,
-    UserProfileResponse,
 )
 from app.features.auth.service import AuthService
 
@@ -43,8 +41,3 @@ async def refresh(payload: RefreshTokenRequest, service: AuthServiceDep) -> Logi
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(payload: RefreshTokenRequest, service: AuthServiceDep) -> None:
     await service.logout(payload)
-
-
-@router.get("/me")
-async def get_me(user_id: CurrentUserDep, service: AuthServiceDep) -> UserProfileResponse:
-    return await service.get_user_profile(user_id)
