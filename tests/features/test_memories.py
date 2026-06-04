@@ -47,6 +47,40 @@ async def test_upload_memory_success_returns_201(
 
 
 @pytest.mark.asyncio
+async def test_upload_memory_with_time_zone_success_returns_201(
+    client: AsyncClient, supabase_mock: MagicMock, mocker: MockerFixture
+) -> None:
+    mocker.patch("app.core.auth.decode_token", return_value={"sub": VALID_UUID})
+
+    # Mock database insert
+    supabase_mock.table.return_value.execute.return_value.data = [
+        {
+            "id": "new-memory-id-tz",
+            "user_id": VALID_UUID,
+            "text": "This is a test memory with time_zone",
+            "topic": "General",
+            "mood": "Tranquila",
+            "reminder_text": None,
+            "title": None,
+            "status": "processing",
+            "created_at": "2026-06-03T00:00:00Z",
+        }
+    ]
+
+    payload = {"text": "This is a test memory with time_zone", "time_zone": "America/Mexico_City"}
+
+    response = await client.post(
+        "/api/v1/memories/upload",
+        headers={"Authorization": "Bearer valid-token"},
+        json=payload,
+    )
+
+    assert response.status_code == 202
+    resp_data = response.json()
+    assert resp_data["id"] == "new-memory-id-tz"
+
+
+@pytest.mark.asyncio
 async def test_upload_memory_unauthorized_returns_401(client: AsyncClient) -> None:
     payload = {"text": "This is a test memory"}
 

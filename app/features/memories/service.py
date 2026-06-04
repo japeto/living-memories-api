@@ -32,12 +32,14 @@ class MemoriesService:
         }
         return await self.repo.create_memory(memory_data)
 
-    async def evaluate_and_update_memory(self, memory_id: str, text: str) -> None:
+    async def evaluate_and_update_memory(
+        self, memory_id: str, text: str, time_zone: str = "UTC"
+    ) -> None:
         """
         Background task to evaluate the memory text with Gemini and update the DB.
         """
         try:
-            result = await self.gemini_service.evaluate_memory(text)
+            result = await self.gemini_service.evaluate_memory(text, time_zone)
             update_data = {
                 "topic": result.topic,
                 "mood": result.mood,
