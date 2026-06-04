@@ -7,11 +7,17 @@ class MemoryCreateRequest(BaseModel):
     text: str
 
 
+class GeminiReminder(BaseModel):
+    title: str
+    due_date: datetime
+    description: str | None = None
+
+
 class GeminiEvaluationResult(BaseModel):
     topic: str
     mood: str
     title: str | None = None
-    reminder_text: str | None = None
+    reminders: list[GeminiReminder] = []
 
 
 class MemoryResponse(BaseModel):
@@ -23,6 +29,5 @@ class MemoryResponse(BaseModel):
     topic: str | None = None
     mood: str | None = None
     title: str | None = None
-    reminder_text: str | None = None
     status: str
     created_at: datetime

@@ -5,14 +5,21 @@ from fastapi import Depends
 from app.features.ai_analysis.gemini_service import GeminiService, get_gemini_service
 from app.features.memories.repository import MemoriesRepository, get_memories_repository
 from app.features.memories.schemas import MemoryCreateRequest, MemoryResponse
+from app.features.reminders.service import RemindersService, get_reminders_service
 
 logger = logging.getLogger(__name__)
 
 
 class MemoriesService:
-    def __init__(self, repo: MemoriesRepository, gemini_service: GeminiService):
+    def __init__(
+        self,
+        repo: MemoriesRepository,
+        gemini_service: GeminiService,
+        reminders_service: RemindersService,
+    ):
         self.repo = repo
         self.gemini_service = gemini_service
+        self.reminders_service = reminders_service
 
     async def create_memory(self, user_id: str, request: MemoryCreateRequest) -> MemoryResponse:
         """
@@ -35,10 +42,12 @@ class MemoriesService:
                 "topic": result.topic,
                 "mood": result.mood,
                 "title": result.title,
-                "reminder_text": result.reminder_text,
                 "status": "completed",
             }
             await self.repo.update_memory(memory_id, update_data)
+
+            if result.reminders:
+                await self.reminders_service.create_reminders(memory_id, result.reminders)
         except Exception as e:
             logger.error(f"Failed to evaluate memory {memory_id}: {e}")
             try:
@@ -56,5 +65,6 @@ class MemoriesService:
 def get_memories_service(
     repo: MemoriesRepository = Depends(get_memories_repository),
     gemini_service: GeminiService = Depends(get_gemini_service),
+    reminders_service: RemindersService = Depends(get_reminders_service),
 ) -> MemoriesService:
-    return MemoriesService(repo, gemini_service)
+    return MemoriesService(repo, gemini_service, reminders_service)
